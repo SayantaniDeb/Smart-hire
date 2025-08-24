@@ -3,6 +3,7 @@ import { candidatesData, getFilteredCandidates, getCandidatesWithScores } from '
 
 const HiringContext = createContext()
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useHiring = () => {
   const context = useContext(HiringContext)
   if (!context) throw new Error('useHiring must be used within a HiringProvider')
