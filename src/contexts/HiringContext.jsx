@@ -3,12 +3,9 @@ import { candidatesData, getFilteredCandidates, getCandidatesWithScores } from '
 
 const HiringContext = createContext()
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useHiring = () => {
   const context = useContext(HiringContext)
-  if (!context) {
-    throw new Error('useHiring must be used within a HiringProvider')
-  }
+  if (!context) throw new Error('useHiring must be used within a HiringProvider')
   return context
 }
 
@@ -93,13 +90,68 @@ export const HiringProvider = ({ children }) => {
     skills: '',
     minScore: 0
   })
-
-  // Combined reset function
   const clearAllSelections = () => {
     clearSelectedTeam()
     clearShortlist()
     resetFilters()
     showToast('🔄 All selections and filters have been reset!', 'success')
+  }
+
+  // ================== AUTO SELECT ==================
+  const autoSelectDiverseTeam = () => {
+    const diverseTeam = []
+    const categoriesUsed = new Set()
+    const locationsUsed = new Set()
+    const experiencesUsed = new Set()
+
+    // Shuffle candidates to get a new combination each time
+    const shuffledCandidates = [...candidatesWithScores].sort(() => Math.random() - 0.5)
+
+    for (const candidate of shuffledCandidates) {
+      if (diverseTeam.length >= 5) break
+      if (
+        !categoriesUsed.has(candidate.category) &&
+        !locationsUsed.has(candidate.location) &&
+        !experiencesUsed.has(candidate.experienceLevel)
+      ) {
+        diverseTeam.push(candidate)
+        categoriesUsed.add(candidate.category)
+        locationsUsed.add(candidate.location)
+        experiencesUsed.add(candidate.experienceLevel)
+      }
+    }
+
+    // Fill remaining slots if less than 5
+    if (diverseTeam.length < 5) {
+      for (const candidate of shuffledCandidates) {
+        if (!diverseTeam.includes(candidate)) diverseTeam.push(candidate)
+        if (diverseTeam.length >= 5) break
+      }
+    }
+
+    setSelectedTeam(diverseTeam)
+    showToast('✅ Diverse team auto-selected!', 'success')
+    setCurrentView('selected')
+  }
+
+  // ================== EXPORT TEAM ==================
+  const exportTeamData = () => {
+    if (!selectedTeam.length) return showToast('⚠️ No team selected!', 'error')
+    const csvContent = [
+      ['Name', 'Category', 'Experience Level', 'Location', 'Skills'],
+      ...selectedTeam.map(c => [c.name, c.category, c.experienceLevel, c.location, c.skills.join(';')])
+    ].map(e => e.join(',')).join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'selected_team.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    showToast('📥 Team data exported!', 'success')
   }
 
   const value = {
@@ -121,7 +173,9 @@ export const HiringProvider = ({ children }) => {
     clearShortlist,
     clearSelectedTeam,
     resetFilters,
-    clearAllSelections, // ✅ Exposed function for header or other components
+    clearAllSelections,
+    autoSelectDiverseTeam,
+    exportTeamData,
     showToast
   }
 

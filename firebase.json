@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "smart-hire1001",
     "public": "dist",
     "ignore": [
       "firebase.json",
