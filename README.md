@@ -69,10 +69,10 @@ Download your team info including:
 
 ```bash
 # Download the code
-git clone https://github.com/yourusername/smart-hire.git
+git clone https://github.com/yourusername/Smart-hire.git
 
 # Go to the folder
-cd smart-hire
+cd Smart-hire
 
 # Install what you need
 npm install
